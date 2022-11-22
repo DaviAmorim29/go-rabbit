@@ -1,18 +1,6 @@
 version: '3'
 
 services:
-  goapp: 
-    image: golang:1.12.5-alpine3.9
-    container_name: goapp
-    volumes:
-      - .:/go/src/app
-    working_dir: /go/src/app
-    ports:
-      - "8555:8080"
-    command: go mod tidy
-    command: go run cmd/main.go
-    tty: true
-
   rabbitmq:
       image: rabbitmq:3-management-alpine
       container_name: 'rabbitmq'
@@ -24,6 +12,20 @@ services:
           - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmq
       networks:
           - rabbitmq_go_net
+
+  goapp: 
+    build:
+      context: .
+    ports:
+      - "8555:8080"
+    networks:
+      - rabbitmq_go_net
+    container_name: 'go-rabbit-app'
+    depends_on:
+      - rabbitmq
+    restart: always
+    entrypoint: dockerize -wait tcp://rabbitmq:5672 -timeout 1m ./main
+
 
 networks:
   rabbitmq_go_net:

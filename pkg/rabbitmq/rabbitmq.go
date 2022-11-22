@@ -54,7 +54,7 @@ func (r *RabbitMQ) CloseChannel() error {
 func (r *RabbitMQ) Consume(out chan<- amqp.Delivery) error {
 	msgs, err := r.Channel.Consume(
 		"cookies",
-		"abcks",
+		"go-consumer",
 		false,
 		false,
 		false,
