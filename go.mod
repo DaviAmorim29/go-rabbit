@@ -1,4 +1,4 @@
-module daviamorim29/go-rabbit
+module github.com/daviamorim29/gorabbit
 
 go 1.19
 
