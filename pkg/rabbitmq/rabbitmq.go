@@ -13,11 +13,6 @@ type RabbitMQ struct {
 
 func NewRabbitMQ() *RabbitMQ {
 	return &RabbitMQ{}
-	// rabbit := &RabbitMQ{}
-	// rabbit.Connect()
-	// rabbit.CreateChannel()
-
-	// return rabbit
 }
 
 // Connect connects to RabbitMQ
@@ -54,61 +49,23 @@ func (r *RabbitMQ) CloseChannel() error {
 	return r.Channel.Close()
 }
 
-// Publish publishes a message to a queue
-
-func (r *RabbitMQ) Publish(queueName string, message string) error {
-	q, err := r.Channel.QueueDeclare(
-		queueName,
-		false,
-		false,
-		false,
-		false,
-		nil,
-	)
-	if err != nil {
-		return err
-	}
-	err = r.Channel.Publish(
-		"",
-		q.Name,
-		false,
-		false,
-		amqp.Publishing{
-			ContentType: "text/plain",
-			Body:        []byte(message),
-		},
-	)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 // Consume consumes a message from a queue
 
-func (r *RabbitMQ) Consume(queueName string) (<-chan amqp.Delivery, error) {
-	q, err := r.Channel.QueueDeclare(
-		queueName,
-		false,
-		false,
-		false,
-		false,
-		nil,
-	)
-	if err != nil {
-		return nil, err
-	}
+func (r *RabbitMQ) Consume(out chan<- amqp.Delivery) error {
 	msgs, err := r.Channel.Consume(
-		q.Name,
-		"",
-		true,
+		"cookies",
+		"abcks",
+		false,
 		false,
 		false,
 		false,
 		nil,
 	)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return msgs, nil
+	for d := range msgs {
+		out <- d
+	}
+	return nil
 }
