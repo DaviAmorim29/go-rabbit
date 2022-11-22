@@ -1,6 +1,10 @@
 package rabbitmq
 
-import amqp "github.com/rabbitmq/amqp091-go"
+import (
+	"fmt"
+
+	amqp "github.com/rabbitmq/amqp091-go"
+)
 
 // RabbitMQ is a wrapper around the amqp091-go package
 
@@ -18,7 +22,7 @@ func NewRabbitMQ() *RabbitMQ {
 // Connect connects to RabbitMQ
 
 func (r *RabbitMQ) Connect() error {
-	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+	conn, err := amqp.Dial("amqp://guest:guest@rabbitmq:5672/")
 	if err != nil {
 		return err
 	}
@@ -51,10 +55,10 @@ func (r *RabbitMQ) CloseChannel() error {
 
 // Consume consumes a message from a queue
 
-func (r *RabbitMQ) Consume(out chan<- amqp.Delivery) error {
+func (r *RabbitMQ) Consume(out chan amqp.Delivery) error {
 	msgs, err := r.Channel.Consume(
 		"cookies",
-		"go-consumer",
+		"go-consumer-docker",
 		false,
 		false,
 		false,
@@ -62,9 +66,10 @@ func (r *RabbitMQ) Consume(out chan<- amqp.Delivery) error {
 		nil,
 	)
 	if err != nil {
-		return err
+		panic(err)
 	}
 	for d := range msgs {
+		fmt.Println("Recebendo mensagem...: ", string(d.Body))
 		out <- d
 	}
 	return nil
